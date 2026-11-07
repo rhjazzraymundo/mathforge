@@ -204,11 +204,6 @@ def _multiply(rng: random.Random) -> Problem:
         steps.append(f"Simplify: {res_num}/{res_den} = {_fmt(res_num, res_den)}")
 
     wrong: dict[str, str] = {}
-    # Forgot to simplify
-    if (sn, sd) != (res_num, res_den):
-        unsimplified = f"{res_num}/{res_den}"
-        if unsimplified != answer:
-            wrong[unsimplified] = "forgot_to_simplify"
     # Accidentally added instead of multiplied
     common = _lcd(d1, d2)
     add_num = a * (common // d1) + b * (common // d2)
@@ -234,13 +229,6 @@ def _addition_errors(a: int, b: int, d1: int, d2: int,
     bad = _fmt(a + b, d1 + d2)
     if bad != answer:
         wrong[bad] = "added_denominators"
-
-    # Correct numerator/denominator but didn't simplify
-    sn, sd = _simplify(raw_num, raw_den)
-    if (sn, sd) != (raw_num, raw_den):
-        unsimplified = f"{raw_num}/{raw_den}"
-        if unsimplified != answer and unsimplified not in wrong:
-            wrong[unsimplified] = "forgot_to_simplify"
 
     return wrong
 

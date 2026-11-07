@@ -8,6 +8,7 @@ if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
 import random
+import math
 import streamlit as st
 from generators.registry import list_topics, get_generator
 
@@ -69,12 +70,35 @@ else:
     if is_correct:
         st.success("✅ Correct! Nice work!")
     else:
-        st.error(f"❌ Not quite. The correct answer is **{problem.correct_answer}**.")
-        # Check for a known error pattern
-        if user_ans in problem.common_wrong_answers:
-            tag = problem.common_wrong_answers[user_ans]
-            friendly = tag.replace("_", " ").replace("-", " ").title()
-            st.info(f"💡 This looks like a **{friendly}** error.")
+        # Check for "forgot to simplify" — the student's fraction equals
+        # the correct value but wasn't reduced (e.g. "4/6" vs "2/3").
+        forgot_simplify = False
+        if "/" in user_ans and problem.topic == "Fractions":
+            try:
+                parts = user_ans.split("/")
+                u_num, u_den = int(parts[0]), int(parts[1])
+                # Parse correct answer the same way
+                if "/" in problem.correct_answer:
+                    c_parts = problem.correct_answer.split("/")
+                    c_num, c_den = int(c_parts[0]), int(c_parts[1])
+                else:
+                    c_num, c_den = int(problem.correct_answer), 1
+                # Same value but not simplified?
+                if u_num * c_den == c_num * u_den and math.gcd(abs(u_num), u_den) > 1:
+                    forgot_simplify = True
+            except (ValueError, IndexError, ZeroDivisionError):
+                pass
+
+        if forgot_simplify:
+            st.warning(f"Almost! **{user_ans}** is correct but not fully simplified. "
+                       f"The simplified answer is **{problem.correct_answer}**.")
+        else:
+            st.error(f"❌ Not quite. The correct answer is **{problem.correct_answer}**.")
+            # Check for a known error pattern
+            if user_ans in problem.common_wrong_answers:
+                tag = problem.common_wrong_answers[user_ans]
+                friendly = tag.replace("_", " ").replace("-", " ").title()
+                st.info(f"💡 This looks like a **{friendly}** error.")
 
     # Worked solution
     with st.expander("📖 Worked Solution", expanded=not is_correct):
