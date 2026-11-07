@@ -1,0 +1,31 @@
+[project]
+name = "mathforge"
+version = "0.1.0"
+description = "A math practice problem generator with spaced repetition"
+requires-python = ">=3.11"
+dependencies = [
+    "streamlit>=1.30",
+    "sqlalchemy>=2.0",
+    "alembic",
+    "psycopg2-binary",
+    "python-dotenv",
+    "duckdb",
+    "pandas",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["generators*", "db*", "services*", "analytics*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
