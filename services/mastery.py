@@ -108,12 +108,22 @@ def record_attempt(
         mastery.current_level, current_results, is_correct, difficulty,
     )
 
-    # 4. Persist any changes.
+    # 4. Persist mastery changes.
     #    Assign a *new* list (don't mutate in-place) so SQLAlchemy's
     #    change-detection picks it up for the JSON column.
     mastery.current_level = new_level
     mastery.recent_results = new_results
     mastery.updated_at = datetime.now(timezone.utc)
+
+    # 5. Update spaced-repetition review queue (Phase 3).
+    #    Wrong answer → schedule a review.
+    #    Correct answer → advance or remove an existing review.
+    from services.spaced_repetition import update_review
+
+    review_action = update_review(
+        session, user_id, topic, difficulty, is_correct,
+    )
+
     session.commit()
 
     return MasteryStatus(
